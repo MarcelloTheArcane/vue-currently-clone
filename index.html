@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>Currently</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" rel="stylesheet" />
+  <link href="css/main.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body class="lg:px-32 bg-gray-900 text-gray-600 font-mono text-center">
+
+  <div class="w-full h-screen flex flex-col items-center justify-center" id="app">
+
+    <h1 class="time p-4 w-full text-5xl lg:text-10xl leading-none flex items-center justify-center">
+      <b class="hours lg:mx-8 max-w-xs flex-1 font-hairline">
+        {{ hours }}
+      </b>
+      <b class="minutes lg:mx-8 max-w-xs flex-1 font-hairline">
+        {{ minutes }}
+      </b>
+      <b class="seconds lg:mx-8 max-w-xs flex-1 font-hairline">
+        {{ seconds }}
+      </b>
+    </h1>
+
+    <ul class="binary py-8 px-4 w-full flex justify-center">
+        <li class="lg:mx-8 max-w-xs flex-1 flex items-end justify-center">
+          <ul
+            v-for="(number, index) of hoursBinary"
+            :key="index"
+            class="second-1 mx-1 lg:mx-8 w-4 lg:w-10 flex flex-col"
+          >
+            <li
+              v-for="(segment, segmentIndex) of number"
+              :key="segmentIndex"
+              :class="segment"
+            />
+          </ul>
+        </li>
+      <li class="lg:mx-8 max-w-xs flex-1 flex items-end justify-center">
+        <ul
+          v-for="(number, index) of minutesBinary"
+          :key="index"
+          class="second-1 mx-1 lg:mx-8 w-4 lg:w-10 flex flex-col"
+        >
+          <li
+            v-for="(segment, segmentIndex) of number"
+            :key="segmentIndex"
+            :class="segment"
+          />
+        </ul>
+      </li>
+      <li class="lg:mx-8 max-w-xs flex-1 flex items-end justify-center">
+        <ul
+          v-for="(number, index) of secondsBinary"
+          :key="index"
+          class="second-1 mx-1 lg:mx-8 w-4 lg:w-10 flex flex-col"
+        >
+          <li
+            v-for="(segment, segmentIndex) of number"
+            :key="segmentIndex"
+            :class="segment"
+          />
+        </ul>
+      </li>
+    </ul>
+
+    <h2 class="internet py-8 px-4 md:text-4xl opacity-50 hover:opacity-100 transition" title="Internet/Beat Time">
+      <small class="text-red-600 font-bold">@</small><b class="beats font-light">{{ internetBeat }}</b>
+    </h2>
+
+    <h3 class="date p-4 md:text-2xl font-normal opacity-25 hover:opacity-75 transition">
+      {{ dateString }}
+    </h3>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data () {
+        return {
+          date: new Date(),
+          h: 29,
+          m: 59,
+          s: 59,
+        }
+      },
+      computed: {
+        hours () {
+          return this.date
+            .getHours()
+            .toString()
+            .padStart(2, '0')
+        },
+        hoursBinary () {
+          return this.binary(this.hours, [2, 4])
+        },
+        minutes () {
+          return this.date
+            .getMinutes()
+            .toString()
+            .padStart(2, '0')
+        },
+        minutesBinary () {
+          return this.binary(this.minutes, [3, 4])
+        },
+        seconds () {
+          return this.date
+            .getSeconds()
+            .toString()
+            .padStart(2, '0')
+        },
+        secondsBinary () {
+          return this.binary(this.seconds, [3, 4])
+        },
+
+        internetBeat () {
+          const a = 23 == this.date.getUTCHours() ? 0 : this.date.getUTCHours() + 1
+          return Math.abs(
+            (60 * (60 * a + this.date.getUTCMinutes()) + this.date.getUTCSeconds()) / 86.4
+          ).toFixed(2)
+        },
+        dateString () {
+          return this.date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+        },
+      },
+      methods: {
+        binary (string, arraySizes) {
+          return string
+          .split('') // Split decimal for columns
+          .map((singleNumber, singleIndex) => parseInt(singleNumber)
+            .toString(2) // Convert decimal to binary
+            .padStart(arraySizes[singleIndex] || 0, '0') // Pad with zeroes to correct rows
+            .split('') // Split binary for rows
+            .map(this.booleanToClassName)
+          )
+        },
+        booleanToClassName (digit, index, array) {
+          let classString = index !== array.length - 1
+            ? 'tick hrs-2-4 mb-1 lg:mb-2 w-full h-px lg:h-1 rounded transition'
+            : 'tick hrs-2-1 w-full h-px lg:h-1 rounded transition'
+          
+          classString += digit === '1'
+            ? ' bg-blue-500'
+            : ' bg-gray-800'
+
+          return classString
+        }
+      },
+      mounted () {
+        setInterval(() => {
+          this.date = new Date()
+        }, 200)
+      },
+    })
+  </script>
+</body>
+
+</html>
